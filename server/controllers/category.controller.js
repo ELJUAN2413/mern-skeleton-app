@@ -5,12 +5,12 @@ import { json } from 'body-parser';
 
 const create = async (req , res)=> {
   const category = new Category (req.body);
-  try{
+  try {
     await category.save();
     return res.status(200).json({
-      message: 'Successfully signed up!'
+      message: 'creada perfectamente!'
     });
-  } catch (err){
+  } catch (err) {
     return res.status(400).json({
       error: errorHandler.getErrorMessage(err)
     });
@@ -38,7 +38,7 @@ const categoryById = async (req, res, next, id) => {
     }
     req.profile= category;
     next();
-  }catch (err){
+  }catch (err) {
     console.log(err);
     return res.status(400).json({
       error: "Could not retrieve category"
@@ -56,7 +56,6 @@ const update = async (req , res , next)=> {
   try {
     let category = req.profile;
     category = merge(category, req.body);
-
     category.updated = Date.now();
     await category.save();
     res.json(category);
@@ -87,6 +86,6 @@ export default {
   list,
   read,
   remove,
-  userById,
-  update
+  update,
+  categoryById
 };

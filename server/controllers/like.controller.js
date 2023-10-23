@@ -1,4 +1,4 @@
-import User from '../models/user.model';
+import Like from '../models/like.model';
 import merge from 'lodash/merge';
 import errorHandler from './../helpers/dbErrorHandler';
 import formidable from 'formidable';
@@ -8,11 +8,11 @@ import defaultlimage from '../../client/assets/images/profile-pic.png';
 import { Photo } from '@material-ui/icons';
 
 const create = async (req, res) => {
-  const user = new User(req.body);
+  const like = new Like(req.body);
   try {
-    await user.save();
+    await like.save();
     return res.status(200).json({
-      message: 'Successfully signed up!'
+      message: 'Successfully like!'
     });
   } catch (err) {
     return res.status(400).json({
@@ -23,8 +23,8 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-    let users = await User.find().select('name email updated created');
-    res.json(users);
+    let likes = await Like.find().select('reaccion user updated created');
+    res.json(likes);
   } catch (err) {
     return res.status('400').json({
       error: errorHandler.getErrorMessage(err)
@@ -32,23 +32,23 @@ const list = async (req, res) => {
   }
 };
 
-const userById = async (req, res, next, id) => {
+const likeById = async (req, res, next, id) => {
   try {
-    let user = await User.findById({_id: id});
+    let like = await Like.findById({_id: id});
     populate('following','_id name')
     .populate('followers','_id name')
     .exec();
-    if(!user) {
+    if(!like) {
       return res.status(400).json({
-        error: 'User not found'
+        error: 'like not found'
       });
     }
-    req.profile = user;
+    req.profile = like;
     next();
   } catch (err) {
     console.log(err);
     return res.status(400).json({
-      error: "Could not retrieve user"
+      error: "Could not retrieve like"
     });
   }
 };
@@ -56,7 +56,7 @@ const userById = async (req, res, next, id) => {
 const read = (req, res) => {
   req.profile.hashed_password = undefined;
   req.profile.salt = undefined;
-  req.name = 'ss';
+  req.reaccion = 'ss';
   return res.json(req.profile);
 };
 
@@ -70,18 +70,18 @@ const update = async (req, res) => {
           error:'Photo could not be uploaded'
         });
       }
-      let user= req.profile;
-      user = extend(user, fields);
-      user.updated = Date.now();
+      let like= req.profile;
+      like = extend(like, fields);
+      like.updated = Date.now();
 
       if(files.photo){
-        user.photo.data = fs.readFileSync(files.photo.filepath);
-        user.photo.contentType = files.photo.type;
+        like.photo.data = fs.readFileSync(files.photo.filepath);
+        like.photo.contentType = files.photo.type;
       }
-      await user.save();
-      user.hashed_password ='';
-      user.salt = '';
-      res.json({user});
+      await like.save();
+      like.hashed_password ='';
+      like.salt = '';
+      res.json({like});
     }catch (err) {
       return res.status(400).json({
         error:errorHandler.getErrorMessage('error',err)
@@ -93,12 +93,12 @@ const update = async (req, res) => {
 const remove = async (req, res, next) => {
   try {
     console.log('deleted');
-    let user = req.profile;
-    console.log('user to remove', user);
-    let deletedUser = await user.deleteOne();
-    deletedUser.hashed_password = '';
-    deletedUser.salt = '';
-    res.json(deletedUser);
+    let like = req.profile;
+    console.log('like to remove', like);
+    let deletedLike = await like.deleteOne();
+    deletedLike.hashed_password = '';
+    deletedLike.salt = '';
+    res.json(deletedLike);
   } catch(err) {
     console.log(err);
     return res.status(400).json({
@@ -114,9 +114,9 @@ const defaultPhoto = (req, res) => {
 
 const addFollowers = async (req,res)=>{
   try{
-    const result = await User.findByIdAndUpdate(
+    const result = await Like.findByIdAndUpdate(
       req.body.followId,
-      {$push:{followers:req.body.userId}},
+      {$push:{followers:req.body.liketId}},
       {new:true}
     )
     .populate('following','id_name')
@@ -133,8 +133,8 @@ const addFollowers = async (req,res)=>{
 };
 const addFollowing= async (req,res,next)=>{
   try{
-    await User.findByIdAndUpdate(
-      req.body.userId,
+    await Like.findByIdAndUpdate(
+      req.body.likeId,
       {$push:{following:req.body.followId}});
       next();
   }catch(err){
@@ -145,9 +145,9 @@ const addFollowing= async (req,res,next)=>{
 };
 const removeFollower = async (req,res)=>{
   try{
-    const result = await User.findByIdAndUpdate(
+    const result = await Like.findByIdAndUpdate(
       req.body.unfollowId,
-      {$pull:{followers:req.body.userId}},
+      {$pull:{followers:req.body.likeId}},
       {new:true}
     )
     .populate('following','_id name')
@@ -163,8 +163,8 @@ const removeFollower = async (req,res)=>{
 
 const removeFollowing = async (req,res,next)=>{
   try{
-    await User.findByIdAndUpdate(
-      req.body.userId,
+    await Like.findByIdAndUpdate(
+      req.body.likeId,
       {$pull:{following:req.body.unfollowId}});
       next();
   }catch(err){
@@ -179,7 +179,7 @@ export default {
   list,
   read,
   remove,
-  userById,
+  likeById,
   update,
   defaultPhoto,
   addFollowers,

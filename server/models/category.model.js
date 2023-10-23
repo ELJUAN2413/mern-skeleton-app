@@ -18,4 +18,4 @@ const CategorySchema = new mongoose.Schema([{
   },
   updated: Date,
 }]);
-export default mongoose.model('User', UserSchema);
+export default mongoose.model('Category', CategorySchema);

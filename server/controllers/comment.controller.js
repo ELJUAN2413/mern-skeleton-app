@@ -1,4 +1,4 @@
-import User from '../models/user.model';
+import Comment from '../models/comment.model';
 import merge from 'lodash/merge';
 import errorHandler from './../helpers/dbErrorHandler';
 import formidable from 'formidable';
@@ -8,11 +8,11 @@ import defaultlimage from '../../client/assets/images/profile-pic.png';
 import { Photo } from '@material-ui/icons';
 
 const create = async (req, res) => {
-  const user = new User(req.body);
+  const comment = new Comment (req.body);
   try {
-    await user.save();
+    await comment.save();
     return res.status(200).json({
-      message: 'Successfully signed up!'
+      message: 'Successfully comment!'
     });
   } catch (err) {
     return res.status(400).json({
@@ -23,8 +23,8 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-    let users = await User.find().select('name email updated created');
-    res.json(users);
+    let comments = await Comment.find().select('comment user updated created');
+    res.json(comments);
   } catch (err) {
     return res.status('400').json({
       error: errorHandler.getErrorMessage(err)
@@ -32,23 +32,23 @@ const list = async (req, res) => {
   }
 };
 
-const userById = async (req, res, next, id) => {
+const commentById = async (req, res, next, id) => {
   try {
-    let user = await User.findById({_id: id});
+    let comment = await Comment.findById({_id: id});
     populate('following','_id name')
     .populate('followers','_id name')
     .exec();
-    if(!user) {
+    if(!comment) {
       return res.status(400).json({
-        error: 'User not found'
+        error: 'Comment not found'
       });
     }
-    req.profile = user;
+    req.profile = comment;
     next();
   } catch (err) {
     console.log(err);
     return res.status(400).json({
-      error: "Could not retrieve user"
+      error: "Could not retrieve comment"
     });
   }
 };
@@ -56,7 +56,7 @@ const userById = async (req, res, next, id) => {
 const read = (req, res) => {
   req.profile.hashed_password = undefined;
   req.profile.salt = undefined;
-  req.name = 'ss';
+  req.comment = 'ss';
   return res.json(req.profile);
 };
 
@@ -70,17 +70,17 @@ const update = async (req, res) => {
           error:'Photo could not be uploaded'
         });
       }
-      let user= req.profile;
-      user = extend(user, fields);
-      user.updated = Date.now();
+      let comment= req.profile;
+      comment = extend(comment, fields);
+      comment.updated = Date.now();
 
       if(files.photo){
         user.photo.data = fs.readFileSync(files.photo.filepath);
         user.photo.contentType = files.photo.type;
       }
-      await user.save();
-      user.hashed_password ='';
-      user.salt = '';
+      await comment.save();
+      comment.hashed_password ='';
+      comment.salt = '';
       res.json({user});
     }catch (err) {
       return res.status(400).json({
@@ -94,11 +94,11 @@ const remove = async (req, res, next) => {
   try {
     console.log('deleted');
     let user = req.profile;
-    console.log('user to remove', user);
-    let deletedUser = await user.deleteOne();
-    deletedUser.hashed_password = '';
-    deletedUser.salt = '';
-    res.json(deletedUser);
+    console.log('comment to remove', comment);
+    let deletedComment = await comment.deleteOne();
+    deletedComment.hashed_password = '';
+    deletedComment.salt = '';
+    res.json(deletedComment);
   } catch(err) {
     console.log(err);
     return res.status(400).json({
@@ -114,9 +114,9 @@ const defaultPhoto = (req, res) => {
 
 const addFollowers = async (req,res)=>{
   try{
-    const result = await User.findByIdAndUpdate(
+    const result = await Comment.findByIdAndUpdate(
       req.body.followId,
-      {$push:{followers:req.body.userId}},
+      {$push:{followers:req.body.commentId}},
       {new:true}
     )
     .populate('following','id_name')
@@ -133,8 +133,8 @@ const addFollowers = async (req,res)=>{
 };
 const addFollowing= async (req,res,next)=>{
   try{
-    await User.findByIdAndUpdate(
-      req.body.userId,
+    await Comment.findByIdAndUpdate(
+      req.body.commentId,
       {$push:{following:req.body.followId}});
       next();
   }catch(err){
@@ -145,9 +145,9 @@ const addFollowing= async (req,res,next)=>{
 };
 const removeFollower = async (req,res)=>{
   try{
-    const result = await User.findByIdAndUpdate(
+    const result = await Comment.findByIdAndUpdate(
       req.body.unfollowId,
-      {$pull:{followers:req.body.userId}},
+      {$pull:{followers:req.body.commentId}},
       {new:true}
     )
     .populate('following','_id name')
@@ -163,8 +163,8 @@ const removeFollower = async (req,res)=>{
 
 const removeFollowing = async (req,res,next)=>{
   try{
-    await User.findByIdAndUpdate(
-      req.body.userId,
+    await Comment.findByIdAndUpdate(
+      req.body.commentId,
       {$pull:{following:req.body.unfollowId}});
       next();
   }catch(err){
@@ -179,7 +179,7 @@ export default {
   list,
   read,
   remove,
-  userById,
+  commentById,
   update,
   defaultPhoto,
   addFollowers,
