@@ -1,7 +1,7 @@
 import Product from '../models/product.model';
 import merge from 'lodash/merge';
 import ErrorHandler from './../helpers/dbErrorHandler';
-import {json} from 'body-parser';
+
 
 const create = async (req, res)=>{
  const product = new Product (req.body);

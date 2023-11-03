@@ -34,24 +34,24 @@ const list = async (req, res) => {
 
 const userById = async (req, res, next, id) => {
   try {
-    let user = await User.findById({_id: id});
-    populate('following','_id name')
-    .populate('followers','_id name')
-    .exec();
-    if(!user) {
-      return res.status(400).json({
-        error: 'User not found'
+    let user = await User.findById({_id: id})
+      .populate('following', '_id name')
+      .populate('followers', '_id name')
+      .exec();
+    if (!user)
+      return res.status('400').json({
+        error: 'user not found'
       });
-    }
-    req.profile = user;
+    req.user = user;
     next();
   } catch (err) {
-    console.log(err);
-    return res.status(400).json({
-      error: "Could not retrieve user"
+    return res.status('400').json({
+      error: 'Could not retrieve user'
     });
   }
 };
+
+
 
 const read = (req, res) => {
   req.profile.hashed_password = undefined;

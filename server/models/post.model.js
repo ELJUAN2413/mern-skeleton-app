@@ -1,23 +1,37 @@
-import mongoose from "mongoose";
-import crypto from 'crypto';
-const PostSchema = new mongoose.Schema([{
-  titulo:{
-    type:String,
-    trim:true,
-    required: 'titulo is required'
-  },
-  description: {
-    type: String,
-    required: 'description is required'
-  },
-  photo:{
-    type:String
-  },
+import mongoose from 'mongoose'
+
+const PostSchema = new mongoose.Schema({
+    text: {
+      type: String,
+      required: 'Text is required'
+    },
+    photo: {
+      data: Buffer,
+      contentType: String
+    },
+    postedBy: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    },
+created: {
+  type: Date,
+  default: Date.now
+},
+likes: [{
+  type: mongoose.Schema.ObjectId,
+  ref: 'User'
+}],
+comments: [{
+  text: String,
   created: {
     type: Date,
     default: Date.now
   },
-  updated: Date,
-}]);
+  postedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
+  }
+}]
+})
 
-export default mongoose.model('Post', PostSchema);
+export default mongoose.model('Post', PostSchema)
